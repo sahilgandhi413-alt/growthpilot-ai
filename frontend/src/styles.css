@@ -1,0 +1,75 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  background: #0f172a;
+  color: white;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: #111827;
+  padding: 15px;
+  border-right: 1px solid #1f2937;
+}
+
+.new-chat {
+  width: 100%;
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.chat-list {
+  margin-top: 10px;
+}
+
+.chat-item {
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.chat-item:hover {
+  background: #1f2937;
+}
+
+/* Main chat */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* messages (ChatGPT style) */
+.message {
+  display: flex;
+  padding: 18px;
+  border-bottom: 1px solid #1f2937;
+}
+
+.message.user {
+  background: #0b1220;
+}
+
+.message.ai {
+  background: #0f172a;
+}
+
+.bubble {
+  max-width: 800px;
+  line-height: 1.6;
+}
+
+/* input fixed like ChatGPT */
+.chat-input {
+  position: sticky;
+  bottom: 0;
+  padding: 15px;
+  background: #111827;
+  display: flex;
+}
