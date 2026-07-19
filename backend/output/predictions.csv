@@ -1,0 +1,11 @@
+quantity,profit,category,region,product,year,month,day,predicted_sales
+2,420,Electronics,West,Laptop Pro,2026,1,5,1748.6
+5,80,Accessories,North,Wireless Mouse,2026,1,6,549.35
+3,120,Accessories,South,Mechanical Keyboard,2026,1,7,464.75
+2,140,Electronics,East,Monitor 27in,2026,1,8,652.4
+4,300,Furniture,West,Office Chair,2026,1,9,1027.3
+8,90,Accessories,North,USB Hub,2026,1,10,338.45
+2,210,Furniture,South,Desk,2026,1,11,840.95
+6,150,Electronics,East,Webcam HD,2026,1,12,592.65
+7,260,Electronics,West,Headphones,2026,1,13,932.95
+15,70,Stationery,North,Notebook Pack,2026,1,14,317.6
