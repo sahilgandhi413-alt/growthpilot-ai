@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from app.models.sales import Sales
+from app.models.uploaded_data import UploadedData
 
 
 REQUIRED_COLUMNS = [
@@ -46,7 +46,7 @@ class CSVService:
 
         for _, row in df.iterrows():
 
-            sale = Sales(
+            sale = UploadedData(
                 date=row["date"],
                 product=row["product"],
                 category=row["category"],

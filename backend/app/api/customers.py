@@ -1,41 +1,27 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-router = APIRouter()
+from app.database.dependencies import get_db
+from app.services.customer_service import CustomerService
 
-@router.get("/customers")
-def customers():
+router = APIRouter(tags=["Customers"])
 
-    return {
 
-        "summary":{
+@router.get("/customers/summary")
+def customer_summary(db: Session = Depends(get_db)):
+    return CustomerService.summary(db)
 
-            "total_customers":1245,
-            "vip_customers":86,
-            "repeat_customers":342,
-            "new_customers":127
 
-        },
+@router.get("/customers/chart")
+def customer_chart(db: Session = Depends(get_db)):
+    return CustomerService.chart(db)
 
-        "top_customers":[
 
-            {
-                "name":"Rahul Sharma",
-                "orders":42,
-                "spent":185000
-            },
+@router.get("/customers/table")
+def customer_table(db: Session = Depends(get_db)):
+    return CustomerService.table(db)
 
-            {
-                "name":"Priya Patel",
-                "orders":37,
-                "spent":162000
-            },
 
-            {
-                "name":"Amit Singh",
-                "orders":29,
-                "spent":141000
-            }
-
-        ]
-
-    }
+@router.get("/customers/insights")
+def customer_insights(db: Session = Depends(get_db)):
+    return CustomerService.insights(db)

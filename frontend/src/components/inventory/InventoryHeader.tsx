@@ -1,101 +1,45 @@
+import { Boxes, Download, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  Boxes,
-  CalendarDays,
-  PackageCheck,
-} from "lucide-react";
 
 export default function InventoryHeader() {
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: -15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="rounded-3xl border border-slate-800 bg-gradient-to-r
-      from-indigo-600
-      via-violet-600
-      to-blue-600
-      p-8 shadow-xl"
+      transition={{ duration: 0.4 }}
+      className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
     >
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-
-        {/* Left */}
+      <div className="flex items-center gap-4">
+        <div className="rounded-2xl bg-indigo-500/20 p-3">
+          <Boxes
+            size={30}
+            className="text-indigo-400"
+          />
+        </div>
 
         <div>
+          <h1 className="text-4xl font-bold text-white">
+            Inventory Management
+          </h1>
 
-          <div className="flex items-center gap-4">
-
-            <Boxes
-              size={36}
-              className="text-white"
-            />
-
-            <div>
-
-              <h1 className="text-4xl font-bold text-white">
-                Inventory Management
-              </h1>
-
-              <p className="mt-3 text-lg text-indigo-100">
-                Monitor inventory, stock levels, warehouse performance and
-                AI-powered inventory insights.
-              </p>
-
-            </div>
-
-          </div>
-
+          <p className="mt-2 text-slate-400">
+            Track inventory levels, stock movements and AI-powered replenishment
+            recommendations.
+          </p>
         </div>
-
-        {/* Right */}
-
-        <div className="flex flex-wrap gap-4">
-
-          <div className="flex items-center gap-3 rounded-xl bg-white/10 px-5 py-3">
-
-            <PackageCheck
-              size={22}
-              className="text-white"
-            />
-
-            <div>
-
-              <p className="text-sm text-indigo-100">
-                Warehouse Status
-              </p>
-
-              <p className="font-semibold text-white">
-                Healthy
-              </p>
-
-            </div>
-
-          </div>
-
-          <div className="flex items-center gap-3 rounded-xl bg-white/10 px-5 py-3">
-
-            <CalendarDays
-              size={20}
-              className="text-white"
-            />
-
-            <div>
-
-              <p className="text-sm text-indigo-100">
-                Last Updated
-              </p>
-
-              <p className="font-semibold text-white">
-                Today • 11:48 AM
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
       </div>
-    </motion.div>
+
+      <div className="flex gap-4">
+        <button className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-3 text-white transition hover:border-cyan-500 hover:bg-slate-800">
+          <RefreshCw size={18} />
+          Refresh
+        </button>
+
+        <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105">
+          <Download size={18} />
+          Export Inventory
+        </button>
+      </div>
+    </motion.section>
   );
 }

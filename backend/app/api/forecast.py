@@ -1,28 +1,27 @@
-﻿from fastapi import APIRouter
+﻿from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.database.dependencies import get_db
+from app.services.forecast_service import ForecastService
+
+router = APIRouter(tags=["Forecast"])
 
 
-router = APIRouter(
-    prefix="/forecast",
-    tags=["Forecast"]
-)
+@router.get("/forecast/summary")
+def summary(db: Session = Depends(get_db)):
+    return ForecastService.summary(db)
 
 
-@router.get("/")
-def forecast():
-    return {
-        "prediction": [
-            {"month": "July", "sales": 45000},
-            {"month": "August", "sales": 52000},
-            {"month": "September", "sales": 61000},
-        ],
-        "confidence": 92,
-    }
+@router.get("/forecast/chart")
+def chart(db: Session = Depends(get_db)):
+    return ForecastService.chart(db)
 
 
-@router.post("/chat")
-def forecast_chat(payload: dict):
-    question = payload.get("question", "")
-    return {
-        "reply": f"Forecast insight: {question or 'Sales are expected to grow steadily.'}",
-        "recommendation": "Keep high-demand products stocked and review marketing spend weekly.",
-    }
+@router.get("/forecast/predictions")
+def predictions(db: Session = Depends(get_db)):
+    return ForecastService.predictions(db)
+
+
+@router.get("/forecast/ai-summary")
+def ai_summary(db: Session = Depends(get_db)):
+    return ForecastService.ai_summary(db)

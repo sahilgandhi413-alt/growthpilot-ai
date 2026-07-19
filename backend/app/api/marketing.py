@@ -1,44 +1,27 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-router = APIRouter()
+from app.database.dependencies import get_db
+from app.services.marketing_service import MarketingService
 
-@router.get("/marketing")
-def marketing():
+router = APIRouter(tags=["Marketing"])
 
-    return {
 
-        "summary":{
+@router.get("/marketing/summary")
+def marketing_summary(db: Session = Depends(get_db)):
+    return MarketingService.summary(db)
 
-            "campaigns":12,
-            "marketing_spend":250000,
-            "revenue_generated":890000,
-            "roi":256
 
-        },
+@router.get("/marketing/chart")
+def marketing_chart(db: Session = Depends(get_db)):
+    return MarketingService.chart(db)
 
-        "campaigns":[
 
-            {
-                "name":"Google Ads",
-                "budget":100000,
-                "sales":350000,
-                "roi":"250%"
-            },
+@router.get("/marketing/campaigns")
+def marketing_campaigns(db: Session = Depends(get_db)):
+    return MarketingService.campaigns(db)
 
-            {
-                "name":"Facebook Ads",
-                "budget":80000,
-                "sales":270000,
-                "roi":"237%"
-            },
 
-            {
-                "name":"Instagram",
-                "budget":70000,
-                "sales":270000,
-                "roi":"286%"
-            }
-
-        ]
-
-    }
+@router.get("/marketing/insights")
+def marketing_insights(db: Session = Depends(get_db)):
+    return MarketingService.insights(db)

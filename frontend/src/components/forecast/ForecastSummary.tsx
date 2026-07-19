@@ -1,133 +1,172 @@
 import {
-  TrendingUp,
-  BadgeIndianRupee,
   Brain,
-  Target,
-  ArrowUpRight,
   Sparkles,
+  ShieldCheck,
+  TrendingUp,
+  TriangleAlert,
 } from "lucide-react";
 
-import { motion } from "framer-motion";
+interface Props {
+  summary: {
+    summary: string;
+    confidence: number;
+    recommendation: string;
+  };
+}
 
-const cards = [
-  {
-    title: "Current Revenue",
-    value: "₹2.76M",
-    icon: BadgeIndianRupee,
-    gradient: "from-emerald-500 to-green-400",
-    progress: 82,
-    change: "+12.4%",
-  },
-  {
-    title: "Forecast Revenue",
-    value: "₹3.12M",
-    icon: TrendingUp,
-    gradient: "from-indigo-500 to-violet-500",
-    progress: 91,
-    change: "+18%",
-  },
-  {
-    title: "AI Confidence",
-    value: "96%",
-    icon: Brain,
-    gradient: "from-cyan-500 to-blue-500",
-    progress: 96,
-    change: "+2%",
-  },
-  {
-    title: "Expected Growth",
-    value: "+18%",
-    icon: Target,
-    gradient: "from-orange-500 to-red-500",
-    progress: 74,
-    change: "+5%",
-  },
-];
-
-export default function ForecastSummary() {
+export default function ForecastSummary({
+  summary,
+}: Props) {
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      {cards.map((card, index) => {
-        const Icon = card.icon;
+    <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-xl">
 
-        return (
-          <motion.div
-            key={card.title}
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.12 }}
-            whileHover={{ y: -8 }}
-            className="
-            relative
-            overflow-hidden
-            rounded-3xl
-            border
-            border-slate-800
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-900
-            p-6
-            shadow-2xl"
-          >
-            {/* Glow */}
-            <div
-              className={`absolute -right-12 -top-12 h-44 w-44 rounded-full bg-gradient-to-r ${card.gradient} opacity-15 blur-3xl`}
+      {/* Header */}
+
+      <div className="flex items-center justify-between border-b border-slate-800 px-8 py-6">
+
+        <div className="flex items-center gap-4">
+
+          <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 p-4">
+
+            <Brain className="text-white" size={26} />
+
+          </div>
+
+          <div>
+
+            <h2 className="text-2xl font-bold text-white">
+              AI Executive Forecast
+            </h2>
+
+            <p className="mt-1 text-slate-400">
+              Machine Learning Business Intelligence
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="rounded-xl bg-blue-600/10 px-5 py-3">
+
+          <div className="flex items-center gap-2">
+
+            <Sparkles
+              className="text-blue-400"
+              size={18}
             />
 
-            <div className="relative flex items-start justify-between">
-              <div>
-                <p className="text-sm text-slate-400">
-                  {card.title}
-                </p>
+            <span className="font-semibold text-blue-400">
+              AI Generated
+            </span>
 
-                <h2 className="mt-4 text-4xl font-black text-white">
-                  {card.value}
-                </h2>
+          </div>
 
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                    <ArrowUpRight size={13} />
-                    {card.change}
-                  </span>
+        </div>
 
-                  <span className="text-xs text-slate-500">
-                    vs previous forecast
-                  </span>
-                </div>
-              </div>
+      </div>
+
+      {/* Summary */}
+
+      <div className="px-8 py-8">
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+
+          <p className="text-lg leading-9 text-slate-300">
+            {summary.summary}
+          </p>
+
+        </div>
+
+        {/* Cards */}
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+
+          {/* Confidence */}
+
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-6">
+
+            <div className="flex items-center gap-3">
+
+              <ShieldCheck
+                className="text-green-400"
+                size={24}
+              />
+
+              <h3 className="font-semibold text-white">
+                Confidence
+              </h3>
+
+            </div>
+
+            <h1 className="mt-5 text-5xl font-bold text-green-400">
+              {summary.confidence}%
+            </h1>
+
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-800">
 
               <div
-                className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient}`}
-              >
-                <Icon className="text-white" size={30} />
-              </div>
+                className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+                style={{
+                  width: `${summary.confidence}%`,
+                }}
+              />
+
             </div>
 
-            <div className="mt-7">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1 text-slate-500">
-                  <Sparkles size={13} />
-                  AI Confidence
-                </span>
+          </div>
 
-                <span className="text-slate-400">
-                  {card.progress}%
-                </span>
-              </div>
+          {/* Opportunity */}
 
-              <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${card.progress}%` }}
-                  transition={{ duration: 1.2 }}
-                  className={`h-full rounded-full bg-gradient-to-r ${card.gradient}`}
-                />
-              </div>
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
+
+            <div className="flex items-center gap-3">
+
+              <TrendingUp
+                className="text-blue-400"
+                size={24}
+              />
+
+              <h3 className="font-semibold text-white">
+                Opportunity
+              </h3>
+
             </div>
-          </motion.div>
-        );
-      })}
+
+            <p className="mt-5 text-slate-300 leading-8">
+              Sales demand is expected to increase significantly
+              next month. AI recommends increasing inventory
+              levels before demand peaks.
+            </p>
+
+          </div>
+
+          {/* Risk */}
+
+          <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-6">
+
+            <div className="flex items-center gap-3">
+
+              <TriangleAlert
+                className="text-orange-400"
+                size={24}
+              />
+
+              <h3 className="font-semibold text-white">
+                Recommendation
+              </h3>
+
+            </div>
+
+            <p className="mt-5 text-slate-300 leading-8">
+              {summary.recommendation}
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   );
 }

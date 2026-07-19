@@ -1,9 +1,8 @@
 ﻿import { useEffect, useState } from "react";
-import { getForecast } from "../services/api";
+import { getForecastChart } from "../services/forecastService";
 
 export default function useForecast() {
-  const [forecast, setForecast] = useState<unknown>(null);
-
+  const [forecast, setForecast] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,10 +11,10 @@ export default function useForecast() {
 
   async function loadForecast() {
     try {
-      const data = await getForecast();
+      const data = await getForecastChart();
       setForecast(data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setLoading(false);
     }

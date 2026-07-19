@@ -2,72 +2,66 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
+from app.schemas.auth import RegisterRequest, LoginRequest
+from app.services.auth_service import AuthService
 
-from app.schemas.user import (
-    UserRegister,
-    UserLogin,
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
 )
-
-from app.services.auth_service import (
-    register_user,
-    login_user,
-)
-
-from app.utils.security import create_access_token # pyright: ignore[reportMissingImports]
-
-router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/register")
 def register(
-    data: UserRegister,
+    request: RegisterRequest,
     db: Session = Depends(get_db),
 ):
+    try:
+        return AuthService.register(db, request)
 
-    user = register_user(db, data)
-
-    if not user:
+    except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail="Email already exists",
+            detail=str(e),
         )
-
-    return {
-        "message": "Registration successful"
-    }
 
 
 @router.post("/login")
 def login(
-    data: UserLogin,
+    request: LoginRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        return AuthService.login(db, request)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail=str(e),
+        )
+
+
+@router.get("/me")
+def me(
+    email: str,
     db: Session = Depends(get_db),
 ):
 
-    user = login_user(
+    user = AuthService.current_user(
         db,
-        data.email,
-        data.password,
+        email,
     )
 
     if not user:
         raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password",
+            status_code=404,
+            detail="User not found",
         )
 
-    token = create_access_token(
-        {
-            "sub": user.email,
-            "role": user.role,
-        }
-    )
-
     return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-        },
+        "id": user.id,
+        "full_name": user.full_name,
+        "company": user.company,
+        "email": user.email,
+        "role": user.role,
     }

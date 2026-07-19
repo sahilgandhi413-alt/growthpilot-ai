@@ -1,85 +1,176 @@
-import InventoryHeader from "../components/inventory/InventoryHeader";
-import InventoryToolbar from "../components/inventory/InventoryToolbar";
-import InventoryStats from "../components/inventory/InventoryStats";
+import { useEffect, useState } from "react";
+
+import InventoryCards from "../components/inventory/InventoryCards";
 import InventoryChart from "../components/inventory/InventoryChart";
 import InventoryTable from "../components/inventory/InventoryTable";
+import InventoryAlerts from "../components/inventory/InventoryAlerts";
+import InventorySummary from "../components/inventory/InventorySummary";
+import FloatingAI from "../components/inventory/FloatingAI";
 import InventoryRecommendations from "../components/inventory/InventoryRecommendations";
-import InventoryWarehouse from "../components/inventory/InventoryWarehouse";
-import InventoryCategoryChart from "../components/inventory/InventoryCategoryChart";
-import InventoryRestockForecast from "../components/inventory/InventoryRestockForecast";
-import InventoryFloatingAI from "../components/inventory/InventoryFloatingAI";
+
+import {
+  getInventorySummary,
+  getInventoryTable,
+  getInventoryChart,
+  getInventoryAlerts,
+  getInventoryAISummary,
+  getRestockPanel,
+} from "../services/inventoryService";
 
 export default function Inventory() {
+  const [summary, setSummary] = useState<any>(null);
+  const [table, setTable] = useState<any[]>([]);
+  const [chart, setChart] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [aiSummary, setAiSummary] = useState<any>(null);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  async function loadInventory(showRefresh = false) {
+    try {
+      if (showRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      setError("");
+
+      const [
+        summaryData,
+        tableData,
+        chartData,
+        alertsData,
+        aiData,
+        recommendationData,
+      ] = await Promise.all([
+        getInventorySummary(),
+        getInventoryTable(),
+        getInventoryChart(),
+        getInventoryAlerts(),
+        getInventoryAISummary(),
+        getRestockPanel(),
+      ]);
+
+      setSummary(summaryData);
+      setTable(tableData);
+      setChart(chartData);
+      setAlerts(alertsData);
+      setAiSummary(aiData);
+      setRecommendations(recommendationData);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load inventory data.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    loadInventory();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center">
+          <div className="h-12 w-12 mx-auto rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          <p className="mt-5 text-slate-400 text-lg">
+            Loading Inventory...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-3xl bg-red-500/10 border border-red-500 p-10">
+        <h2 className="text-2xl font-bold text-red-400">
+          Something went wrong
+        </h2>
+
+        <p className="text-slate-300 mt-3">
+          {error}
+        </p>
+
+        <button
+          onClick={() => loadInventory()}
+          className="mt-6 rounded-xl bg-red-500 px-6 py-3 text-white"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="space-y-8">
 
-      {/* Animated Background */}
+      {/* Header */}
 
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
 
-        <div className="absolute -top-32 -left-32 h-[550px] w-[550px] rounded-full bg-indigo-600/10 blur-[170px]" />
+        <div>
+          <h1 className="text-4xl font-bold text-white">
+            Inventory Management
+          </h1>
 
-        <div className="absolute top-1/3 right-0 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[170px]" />
+          <p className="text-slate-400 mt-2">
+            Monitor inventory health, stock levels and AI recommendations.
+          </p>
+        </div>
 
-        <div className="absolute bottom-0 left-1/3 h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-[170px]" />
+        <button
+          onClick={() => loadInventory(true)}
+          className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 transition"
+        >
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
 
       </div>
 
-      <main className="relative mx-auto max-w-[1700px] px-8 py-8 pb-32 space-y-8">
+      {/* KPI Cards */}
 
-        {/* Header */}
+      {summary && (
+        <InventoryCards summary={summary} />
+      )}
 
-        <InventoryHeader />
+      {/* Chart + Alerts */}
 
-        {/* Toolbar */}
+      <div className="grid lg:grid-cols-3 gap-8">
 
-        <InventoryToolbar />
+        <div className="lg:col-span-2">
+          <InventoryChart data={chart} />
+        </div>
 
-        {/* KPI Cards */}
+        <InventoryAlerts alerts={alerts} />
 
-        <InventoryStats />
+      </div>
 
-        {/* Main Analytics */}
+      {/* AI Recommendations */}
 
-        <section className="grid grid-cols-12 gap-8">
+      <InventoryRecommendations
+        recommendations={recommendations}
+      />
 
-          {/* Left */}
+      {/* Inventory Table */}
 
-          <div className="col-span-12 xl:col-span-8 space-y-8">
+      <InventoryTable rows={table} />
 
-            <InventoryChart />
+      {/* AI Summary */}
 
-            <InventoryTable />
+      {aiSummary && (
+        <InventorySummary summary={aiSummary} />
+      )}
 
-          </div>
+      {/* Export */}
 
-          {/* Right */}
-
-          <div className="col-span-12 xl:col-span-4 space-y-8">
-
-            <InventoryRecommendations />
-
-            <InventoryWarehouse />
-
-          </div>
-
-        </section>
-
-        {/* Bottom Analytics */}
-
-        <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-          <InventoryCategoryChart />
-
-          <InventoryRestockForecast />
-
-        </section>
-
-      </main>
-
-      {/* Floating AI */}
-
-      <InventoryFloatingAI />
+      <FloatingAI/>
 
     </div>
   );

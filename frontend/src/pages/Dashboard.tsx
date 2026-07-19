@@ -1,106 +1,308 @@
-﻿  import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+﻿import BusinessReport from "../components/report/BusinessReport";
 
-import DashboardHeader from "../components/dashboard/DashboardHeader";
-import KPIGrid from "../components/dashboard/KPIGrid";
+
+import { useEffect, useRef, useState } from "react";
+import jsPDF from "jspdf";
+import { toast } from "react-hot-toast";
+import { Upload } from "lucide-react";
+
+
+
+import { uploadDataset } from "../services/uploadService";
+import {
+  Download,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+
+import DashboardCards from "../components/dashboard/DashboardCards";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import CategoryChart from "../components/dashboard/CategoryChart";
-import AIInsights from "../components/dashboard/AIInsights";
-import RecentOrders from "../components/dashboard/RecentOrders";
-import InventoryAlerts from "../components/dashboard/InventoryAlert";
-import ActivityFeed from "../components/dashboard/ActivityFeed";
+import ExecutiveSummary from "../components/dashboard/ExecutiveSummary";
 
-import FileUpload from "../components/common/FileUpload";
-import ExportReport from "../components/common/ExportReport";
+import DataTable from "../components/common/DataTable";
+import FadeIn from "../components/common/FadeIn";
+import DashboardAI from "../components/dashboard/Dashboardai";
 
-import { getDashboard } from "../services/dashboard";
-
-interface DashboardData {
-  revenue: number;
-  orders: number;
-  products: number;
-  growth: number;
-}
+import {
+  getDashboardSummary,
+  getDashboardInsights,
+  getRevenueChart,
+  getCategoryChart,
+  getRecentOrders,
+} from "../services/dashboardApi";
 
 export default function Dashboard() {
-  const [dashboard, setDashboard] = useState<DashboardData>({
-    revenue: 0,
-    orders: 0,
-    products: 0,
-    growth: 0,
+  const [summary, setSummary] = useState<any>(null);
+  const [revenue, setRevenue] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [insights, setInsights] = useState<any>(null);
+const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleExportPDF = () => {
+  const doc = new jsPDF();
+
+  // ==========================
+  // Header
+  // ==========================
+
+  doc.setFontSize(22);
+  doc.setTextColor(37, 99, 235);
+  doc.text("GrowthPilot AI", 20, 20);
+
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Business Intelligence Report", 20, 32);
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+
+  doc.text(
+    `Generated : ${new Date().toLocaleString()}`,
+    20,
+    42
+  );
+
+  doc.line(20, 48, 190, 48);
+
+  // ==========================
+  // Dashboard Summary
+  // ==========================
+
+  doc.setFontSize(16);
+  doc.setTextColor(37, 99, 235);
+  doc.text("Dashboard Summary", 20, 60);
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+
+  doc.text(
+    `Revenue : ₹${Number(summary?.revenue ?? 0).toLocaleString()}`,
+    25,
+    74
+  );
+
+  doc.text(
+    `Orders : ${summary?.orders ?? 0}`,
+    25,
+    84
+  );
+
+  doc.text(
+    `Products : ${summary?.products ?? 0}`,
+    25,
+    94
+  );
+
+  doc.text(
+    `Customers : ${summary?.customers ?? 0}`,
+    25,
+    104
+  );
+
+  // ==========================
+  // Revenue Trend
+  // ==========================
+
+  doc.setFontSize(16);
+  doc.setTextColor(37, 99, 235);
+  doc.text("Revenue Trend", 20, 122);
+
+  doc.setFontSize(11);
+  doc.setTextColor(0);
+
+  let y = 134;
+
+  revenue.forEach((item: any) => {
+    doc.text(
+      `${item.month} : ₹${Number(item.revenue).toLocaleString()}`,
+      25,
+      y
+    );
+
+    y += 8;
   });
 
-  const [loading, setLoading] = useState(true);
+  // ==========================
+  // Category Sales
+  // ==========================
 
-  const [error, setError] = useState("");
+  y += 6;
 
-  async function fetchDashboard() {
-    try {
-      setLoading(true);
+  doc.setFontSize(16);
+  doc.setTextColor(37, 99, 235);
+  doc.text("Category Performance", 20, y);
 
-      const data = await getDashboard();
+  y += 12;
 
-      setDashboard({
-        revenue: data.revenue ?? 0,
-        orders: data.orders ?? 0,
-        products: data.products ?? 0,
-        growth: data.growth ?? 0,
-      });
+  doc.setFontSize(11);
+  doc.setTextColor(0);
 
-      setError("");
-    } catch (err) {
-      console.error(err);
+  category.forEach((item: any) => {
+    doc.text(
+      `${item.category} : ${item.sales}`,
+      25,
+      y
+    );
 
-      setError("Unable to load dashboard.");
-    } finally {
-      setLoading(false);
-    }
+    y += 8;
+  });
+
+  // ==========================
+  // Recent Orders
+  // ==========================
+
+  y += 8;
+
+  doc.setFontSize(16);
+  doc.setTextColor(37, 99, 235);
+  doc.text("Latest Orders", 20, y);
+
+  y += 12;
+
+  doc.setFontSize(10);
+  doc.setTextColor(0);
+
+  orders.slice(0, 5).forEach((order: any) => {
+    doc.text(
+      `${order.customer} | ${order.product} | Qty ${order.quantity} | ₹${order.amount}`,
+      25,
+      y
+    );
+
+    y += 8;
+  });
+
+  // ==========================
+  // AI Executive Summary
+  // ==========================
+
+  y += 10;
+
+  doc.setFontSize(16);
+  doc.setTextColor(37, 99, 235);
+  doc.text("AI Executive Summary", 20, y);
+
+  y += 10;
+
+  doc.setFontSize(11);
+  doc.setTextColor(0);
+
+  const aiSummary =
+    insights?.summary ??
+    "No AI summary available.";
+
+  const splitText = doc.splitTextToSize(
+    aiSummary,
+    165
+  );
+
+  doc.text(splitText, 25, y);
+
+  // ==========================
+  // Footer
+  // ==========================
+
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+
+  doc.text(
+    "Generated automatically by GrowthPilot AI",
+    20,
+    285
+  );
+
+  doc.save("GrowthPilot_Report.pdf");
+
+  toast.success("Report exported successfully!");
+};
+  
+    async function loadDashboard() {
+  try {
+    const [
+      summaryData,
+      revenueData,
+      categoryData,
+      ordersData,
+      insightData,
+    ] = await Promise.all([
+      getDashboardSummary(),
+      getRevenueChart(),
+      getCategoryChart(),
+      getRecentOrders(),
+      getDashboardInsights(),
+    ]);
+
+    setSummary(summaryData);
+    setRevenue(revenueData);
+    setCategory(categoryData);
+    setOrders(ordersData);
+    setInsights(insightData);
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to refresh dashboard.");
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
   }
+}
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchDashboard();
-  }, []);
+useEffect(() => {
+  loadDashboard();
+}, []);
+const handleRefresh = async () => {
+  setRefreshing(true);
 
+  toast.loading("Refreshing dashboard...");
+
+  await loadDashboard();
+
+  toast.dismiss();
+
+  toast.success("Dashboard updated!");
+};
+const handleUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (!e.target.files || e.target.files.length === 0) return;
+
+  const file = e.target.files[0];
+
+  toast.loading("Uploading dataset...");
+
+  try {
+    await uploadDataset(file);
+
+    toast.dismiss();
+
+    toast.success("Dataset uploaded successfully!");
+
+    await loadDashboard();
+
+  } catch (err) {
+    toast.dismiss();
+
+    toast.error("Upload failed");
+  }
+};
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
 
         <div className="text-center">
 
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+          <div className="mx-auto mb-6 h-20 w-20 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
 
-          <p className="mt-5 text-lg text-slate-400">
+          <h2 className="text-2xl font-bold text-white">
             Loading Dashboard...
-          </p>
-
-        </div>
-
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-
-        <div className="rounded-3xl border border-red-500 bg-red-500/10 p-10">
-
-          <h2 className="text-2xl font-bold text-red-400">
-            Dashboard Error
           </h2>
 
-          <p className="mt-3 text-slate-300">
-            {error}
+          <p className="mt-3 text-slate-400">
+            Preparing your business insights...
           </p>
-
-          <button
-            onClick={fetchDashboard}
-            className="mt-6 rounded-xl bg-red-600 px-5 py-3 text-white transition hover:bg-red-700"
-          >
-            Retry
-          </button>
 
         </div>
 
@@ -109,79 +311,169 @@ export default function Dashboard() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: .45 }}
-      className="mx-auto max-w-[1700px] space-y-8 px-8 py-8"
-    >
-      {/* Header */}
+    <div className="space-y-8">
 
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      {/* HERO */}
 
-        <DashboardHeader />
+      <FadeIn>
 
-        <button
-          onClick={fetchDashboard}
-          className="flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-700"
-        >
-          <RefreshCw size={18} />
+        <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-r from-blue-600/10 via-slate-900 to-indigo-600/10 p-8">
 
-          Refresh Dashboard
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
 
-        </button>
+          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
 
-      </div>
+            <div>
 
-      {/* Upload */}
+              <div className="mb-4 flex items-center gap-3">
 
-      <div className="grid gap-6 lg:grid-cols-2">
+                <Sparkles className="text-blue-400" />
 
-        <FileUpload />
+                <span className="rounded-full bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
+                  AI Powered Analytics
+                </span>
 
-        <ExportReport />
+              </div>
 
-      </div>
+              <h1 className="text-5xl font-bold text-white">
+                Welcome Back 👋
+              </h1>
 
-      {/* KPI */}
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-400">
+                Here's a complete overview of your sales,
+                inventory, customer activity and AI business
+                recommendations.
+              </p>
 
-      <KPIGrid data={dashboard} />
+            </div>
 
-      {/* Charts */}
+            <div className="flex gap-4">
 
-      <div className="grid gap-6 xl:grid-cols-3">
+     <button
+  onClick={handleExportPDF}
+  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+>
+  <Download size={18} />
+  Export Report
+</button>       
+<button
+    onClick={() => fileInputRef.current?.click()}
+    className="flex items-center gap-2 rounded-2xl bg-green-600 px-6 py-4 font-semibold text-white hover:bg-green-700"
+>
+    <Upload size={18} />
+    Upload Dataset
+</button>
 
-        <div className="xl:col-span-2">
+<input
+    ref={fileInputRef}
+    type="file"
+    hidden
+    accept=".csv,.xlsx,.xls"
+    onChange={handleUpload}
+/>
 
-          <RevenueChart />
+              <button
+  onClick={handleRefresh}
+  disabled={refreshing}
+  className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-6 py-4 text-white transition hover:bg-slate-800 disabled:opacity-50"
+>
+  <RefreshCw
+    size={18}
+    className={refreshing ? "animate-spin" : ""}
+  />
+
+  {refreshing ? "Refreshing..." : "Refresh"}
+</button>
+
+            </div>
+
+          </div>
 
         </div>
 
-        <CategoryChart />
+      </FadeIn>
 
-      </div>
+      {/* KPI */}
+
+      <FadeIn delay={0.1}>
+        <DashboardCards summary={summary} />
+      </FadeIn>
+
+      {/* CHARTS */}
+
+      <FadeIn delay={0.2}>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+
+          <RevenueChart data={revenue} />
+
+          <CategoryChart data={category} />
+
+        </div>
+
+      </FadeIn>
 
       {/* AI */}
 
-      <AIInsights />
+      <FadeIn delay={0.3}>
+        <ExecutiveSummary insights={insights} />
+      </FadeIn>
 
-      {/* Tables */}
+      {/* TABLE */}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <FadeIn delay={0.4}>
 
-        <RecentOrders />
+        <DataTable
+          columns={[
+            {
+              key: "id",
+              label: "ID",
+            },
+            {
+              key: "customer",
+              label: "Customer",
+            },
+            {
+              key: "product",
+              label: "Product",
+            },
+            {
+              key: "quantity",
+              label: "Quantity",
+            },
+            {
+              key: "amount",
+              label: "Amount",
+            },
+            {
+              key: "status",
+              label: "Status",
+            },
+          ]}
+          rows={orders}
+        />
 
-        <InventoryAlerts />
+      </FadeIn>
 
-      </div>
+      {/* EXPORT */}
 
-      {/* Activity */}
+      <DashboardAI/>
+    <div
+  style={{
+    position: "absolute",
+    left: "-9999px",
+    top: 0,
+  }}
+>
+  <BusinessReport
+    summary={summary}
+    revenue={revenue}
+    category={category}
+    insights={insights}
+  />
+  </div>
+  
 
-      <ActivityFeed />
-
-    </motion.div>
+    </div>
   );
-}         
-
-
-
+}  

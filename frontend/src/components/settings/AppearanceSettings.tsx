@@ -1,103 +1,254 @@
-import { Moon, Sun, Monitor } from "lucide-react";
-import { useState } from "react";
+import { Moon, Palette } from "lucide-react";
+import { useSettings } from "../../context/SettingsContext";
 
-const themes = [
-  {
-    name: "Dark",
-    icon: Moon,
-  },
-  {
-    name: "Light",
-    icon: Sun,
-  },
-  {
-    name: "System",
-    icon: Monitor,
-  },
-];
-
-const colors = [
-  "#6366F1",
-  "#06B6D4",
-  "#10B981",
-  "#8B5CF6",
-  "#F97316",
-];
 
 export default function AppearanceSettings() {
-  const [theme, setTheme] = useState("Dark");
-  const [accent, setAccent] = useState(colors[0]);
+
+
+  const {
+    settings,
+    updateSettings,
+  } = useSettings();
+
+
+
+  const toggleDarkMode = () => {
+
+    updateSettings({
+
+      darkMode: !settings.darkMode,
+
+    });
+
+  };
+
+
 
   return (
-    <div className="rounded-[30px] border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-7 shadow-xl">
 
-      <h2 className="mb-7 text-2xl font-bold text-white">
+    <section
+      className="
+      rounded-3xl
+      border
+      border-slate-800
+      bg-slate-900
+      p-8
+      "
+    >
+
+
+      <h2
+        className="
+        mb-8
+        text-2xl
+        font-bold
+        text-white
+        "
+      >
+
         Appearance
+
       </h2>
 
-      <p className="mb-5 text-slate-400">
-        Theme
-      </p>
 
-      <div className="grid grid-cols-3 gap-4">
 
-        {themes.map((item) => {
-          const Icon = item.icon;
 
-          return (
-            <button
-              key={item.name}
-              onClick={() => setTheme(item.name)}
-              className={`rounded-2xl border p-5 transition ${
-                theme === item.name
-                  ? "border-violet-500 bg-violet-500/10"
-                  : "border-slate-800 bg-slate-900"
-              }`}
-            >
-              <Icon
-                className="mx-auto text-white"
-                size={26}
-              />
+      <div className="space-y-6">
 
-              <p className="mt-3 text-white">
-                {item.name}
-              </p>
 
-            </button>
-          );
-        })}
 
-      </div>
+        {/* Dark Mode Toggle */}
 
-      <div className="mt-8">
+        <div
+          className="
+          flex
+          items-center
+          justify-between
+          "
+        >
 
-        <p className="mb-4 text-slate-400">
-          Accent Color
-        </p>
 
-        <div className="flex gap-4">
+          <div
+            className="
+            flex
+            items-center
+            gap-3
+            "
+          >
 
-          {colors.map((color) => (
-
-            <button
-              key={color}
-              onClick={() => setAccent(color)}
-              style={{
-                background: color,
-              }}
-              className={`h-12 w-12 rounded-full transition ${
-                accent === color
-                  ? "ring-4 ring-white"
-                  : ""
-              }`}
+            <Moon
+              className="text-cyan-400"
             />
 
-          ))}
+
+            <span className="text-white">
+
+              Dark Mode
+
+            </span>
+
+
+          </div>
+
+
+
+
+          <button
+
+            onClick={toggleDarkMode}
+
+            className={`
+              relative
+              h-7
+              w-14
+              rounded-full
+              transition
+              duration-300
+              ${
+                settings.darkMode
+                  ? "bg-cyan-500"
+                  : "bg-slate-700"
+              }
+            `}
+
+          >
+
+
+            <span
+
+              className={`
+                absolute
+                top-1
+                h-5
+                w-5
+                rounded-full
+                bg-white
+                transition-all
+                duration-300
+                ${
+                  settings.darkMode
+                  ? "left-8"
+                  : "left-1"
+                }
+              `}
+
+            />
+
+
+          </button>
+
 
         </div>
 
+
+
+
+
+
+        {/* Accent Color */}
+
+        <div
+          className="
+          flex
+          items-center
+          justify-between
+          "
+        >
+
+
+
+          <div
+            className="
+            flex
+            items-center
+            gap-3
+            "
+          >
+
+
+            <Palette
+              className="text-pink-400"
+            />
+
+
+            <span className="text-white">
+
+              Accent Color
+
+            </span>
+
+
+          </div>
+
+
+
+
+
+          <select
+
+            value={
+              settings.responseStyle === "Purple"
+              ? "Purple"
+              : "Cyan"
+            }
+
+            onChange={(e)=>{
+
+              updateSettings({
+
+                responseStyle:e.target.value
+
+              });
+
+            }}
+
+            className="
+            rounded-xl
+            bg-slate-800
+            px-4
+            py-2
+            text-white
+            outline-none
+            "
+
+          >
+
+
+            <option>
+              Cyan
+            </option>
+
+
+            <option>
+              Blue
+            </option>
+
+
+            <option>
+              Purple
+            </option>
+
+
+            <option>
+              Pink
+            </option>
+
+
+
+          </select>
+
+
+
+        </div>
+
+
+
       </div>
 
-    </div>
+
+
+    </section>
+
   );
+
 }

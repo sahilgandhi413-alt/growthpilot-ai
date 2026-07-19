@@ -1,76 +1,165 @@
-import CustomerHeader from "../components/Customers/CustomerHeader";
-import CustomerToolbar from "../components/Customers/CustomerToolbar";
-import CustomerStats from "../components/Customers/CustomerStats";
-import CustomerGrowthChart from "../components/Customers/CustomerGrowthChart";
-import CustomerSegmentChart from "../components/Customers/CustomerSegmentChart";
-import CustomerAIInsights from "../components/Customers/CustomerAIInsights";
+import { useEffect, useState } from "react";
+import { Users, RefreshCw } from "lucide-react";
+
+import CustomerCards from "../components/Customers/CustomerCards";
+import CustomerChart from "../components/Customers/CustomerChart";
 import CustomerTable from "../components/Customers/CustomerTable";
-import CustomerLoyalty from "../components/Customers/CustomerLoyalty";
-import CustomerActivity from "../components/Customers/CustomerActivity";
+import CustomerInsights from "../components/Customers/CustomerInsights";
 import CustomerFloatingAI from "../components/Customers/CustomerFloatingAI";
+import {
+  getCustomerSummary,
+  getCustomerChart,
+  getCustomerTable,
+  getCustomerInsights,
+} from "../services/customerService";
 
 export default function Customers() {
+  const [summary, setSummary] = useState<any>(null);
+  const [chart, setChart] = useState<any[]>([]);
+  const [table, setTable] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  async function loadCustomers(refresh = false) {
+    try {
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      setError("");
+
+      const [
+        summaryData,
+        chartData,
+        tableData,
+        insightData,
+      ] = await Promise.all([
+        getCustomerSummary(),
+        getCustomerChart(),
+        getCustomerTable(),
+        getCustomerInsights(),
+      ]);
+
+      setSummary(summaryData);
+      setChart(chartData);
+      setTable(tableData);
+      setInsights(insightData);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load customer analytics.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+
+          <h2 className="mt-6 text-xl font-semibold text-white">
+            Loading Customer Analytics
+          </h2>
+
+          <p className="mt-2 text-slate-400">
+            Fetching customer intelligence...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-3xl border border-red-500 bg-red-500/10 p-10">
+        <h2 className="text-3xl font-bold text-red-400">
+          Failed to Load Data
+        </h2>
+
+        <p className="mt-4 text-slate-300">{error}</p>
+
+        <button
+          onClick={() => loadCustomers()}
+          className="mt-8 rounded-xl bg-red-500 px-6 py-3 font-semibold text-white transition hover:bg-red-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Background Glow */}
+    <div className="space-y-8">
 
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Header */}
 
-        <div className="absolute -top-24 -left-24 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[140px]" />
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[140px]" />
+        <div className="flex items-center gap-5">
+
+          <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4 shadow-lg">
+            <Users className="text-white" size={28} />
+          </div>
+
+          <div>
+
+            <h1 className="text-4xl font-bold text-white">
+              Customer Analytics
+            </h1>
+
+            <p className="mt-2 text-slate-400">
+              Analyze customer behaviour, loyalty and lifetime value using AI.
+            </p>
+
+          </div>
+
+        </div>
+
+        <button
+          onClick={() => loadCustomers(true)}
+          disabled={refreshing}
+          className="flex items-center gap-3 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-70"
+        >
+          <RefreshCw
+            size={18}
+            className={refreshing ? "animate-spin" : ""}
+          />
+
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
 
       </div>
 
-      <main className="relative mx-auto max-w-[1700px] px-8 py-8 space-y-8">
+      {/* KPI Cards */}
 
-        {/* Header */}
+      {summary && <CustomerCards summary={summary} />}
 
-        <CustomerHeader />
+      {/* Customer Growth */}
 
-        {/* Toolbar */}
+      <CustomerChart data={chart} />
 
-        <CustomerToolbar />
+      {/* Customer Table */}
 
-        {/* KPI Cards */}
+      <CustomerTable rows={table} />
 
-        <CustomerStats />
+      {/* AI Insights */}
 
-        {/* Charts */}
+      {insights && (
+        <CustomerInsights insights={insights} />
+      )}
+      <CustomerFloatingAI/>
 
-        <section className="grid gap-8 xl:grid-cols-3">
-
-          <div className="xl:col-span-2">
-            <CustomerGrowthChart />
-          </div>
-
-          <CustomerSegmentChart />
-
-        </section>
-
-        {/* AI Insights */}
-
-        <CustomerAIInsights />
-
-        {/* Customer Directory */}
-
-        <CustomerTable />
-
-        {/* Bottom Section */}
-
-        <section className="grid gap-8 lg:grid-cols-2">
-
-          <CustomerLoyalty />
-
-          <CustomerActivity />
-
-        </section>
-
-      </main>
-
-      {/* Floating AI */}
-
-      <CustomerFloatingAI />
     </div>
   );
 }

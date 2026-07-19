@@ -1,89 +1,98 @@
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import {
   Search,
-  MoreVertical,
+  Users,
   Crown,
   Star,
-  User,
+  Award,
 } from "lucide-react";
 
-const customers = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    email: "rahul@example.com",
-    phone: "+91 9876543210",
-    orders: 128,
-    spend: "₹2,84,000",
-    status: "Active",
-    segment: "VIP",
-  },
-  {
-    id: 2,
-    name: "Priya Patel",
-    email: "priya@example.com",
-    phone: "+91 9876501234",
-    orders: 84,
-    spend: "₹1,72,500",
-    status: "Active",
-    segment: "Premium",
-  },
-  {
-    id: 3,
-    name: "Arjun Mehta",
-    email: "arjun@example.com",
-    phone: "+91 9898989898",
-    orders: 32,
-    spend: "₹64,900",
-    status: "Inactive",
-    segment: "Regular",
-  },
-  {
-    id: 4,
-    name: "Neha Shah",
-    email: "neha@example.com",
-    phone: "+91 9988776655",
-    orders: 14,
-    spend: "₹28,200",
-    status: "New",
-    segment: "New",
-  },
-];
+interface Customer {
+  customer: string;
+  orders: number;
+  revenue: number;
+  lifetime_value: number;
+  tier: "Platinum" | "Gold" | "Silver";
+}
 
-export default function CustomerTable() {
+interface Props {
+  rows: Customer[];
+}
+
+export default function CustomerTable({ rows }: Props) {
+  const [search, setSearch] = useState("");
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((row) =>
+      row.customer
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
+  }, [rows, search]);
+
+  const getTierBadge = (tier: string) => {
+    switch (tier) {
+      case "Platinum":
+        return (
+          <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-indigo-300 text-sm font-semibold">
+            <Crown size={15} />
+            Platinum
+          </span>
+        );
+
+      case "Gold":
+        return (
+          <span className="inline-flex items-center gap-2 rounded-full bg-yellow-500/20 px-3 py-1 text-yellow-300 text-sm font-semibold">
+            <Award size={15} />
+            Gold
+          </span>
+        );
+
+      default:
+        return (
+          <span className="inline-flex items-center gap-2 rounded-full bg-slate-700 px-3 py-1 text-slate-300 text-sm font-semibold">
+            <Star size={15} />
+            Silver
+          </span>
+        );
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-[32px] border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 shadow-[0_20px_70px_rgba(0,0,0,.35)]"
-    >
+    <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-xl">
+
       {/* Header */}
 
-      <div className="flex flex-col gap-5 border-b border-slate-800 p-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="border-b border-slate-800 p-6">
 
-        <div>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-          <h2 className="text-2xl font-bold text-white">
-            Customer Directory
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              Top Customers
+            </h2>
 
-          <p className="mt-1 text-slate-400">
-            Manage customers and relationships
-          </p>
+            <p className="mt-2 text-slate-400">
+              View customer performance and lifetime value.
+            </p>
+          </div>
 
-        </div>
+          <div className="relative">
 
-        <div className="relative w-full max-w-sm">
+            <Search
+              size={18}
+              className="absolute left-4 top-3.5 text-slate-400"
+            />
 
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-          />
+            <input
+              type="text"
+              placeholder="Search customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-72 rounded-xl border border-slate-700 bg-slate-800 py-3 pl-11 pr-4 text-white outline-none focus:border-blue-500"
+            />
 
-          <input
-            placeholder="Search customers..."
-            className="w-full rounded-2xl border border-slate-700 bg-slate-900 py-3 pl-11 pr-4 text-white outline-none transition focus:border-cyan-500"
-          />
+          </div>
 
         </div>
 
@@ -95,16 +104,29 @@ export default function CustomerTable() {
 
         <table className="w-full">
 
-          <thead className="bg-slate-900/80">
+          <thead className="bg-slate-800">
 
-            <tr className="text-left text-sm text-slate-400">
+            <tr>
 
-              <th className="px-8 py-5">Customer</th>
-              <th className="px-6 py-5">Orders</th>
-              <th className="px-6 py-5">Spend</th>
-              <th className="px-6 py-5">Segment</th>
-              <th className="px-6 py-5">Status</th>
-              <th className="px-6 py-5 text-right">Actions</th>
+              <th className="px-6 py-4 text-left text-slate-300">
+                Customer
+              </th>
+
+              <th className="text-left text-slate-300">
+                Orders
+              </th>
+
+              <th className="text-left text-slate-300">
+                Revenue
+              </th>
+
+              <th className="text-left text-slate-300">
+                Lifetime Value
+              </th>
+
+              <th className="text-left text-slate-300">
+                Tier
+              </th>
 
             </tr>
 
@@ -112,135 +134,67 @@ export default function CustomerTable() {
 
           <tbody>
 
-            {customers.map((customer) => (
+            {filteredRows.length === 0 ? (
 
-              <tr
-                key={customer.id}
-                className="border-t border-slate-800 transition hover:bg-slate-800/40"
-              >
-                {/* Customer */}
+              <tr>
 
-                <td className="px-8 py-6">
+                <td
+                  colSpan={5}
+                  className="py-14 text-center text-slate-500"
+                >
 
-                  <div className="flex items-center gap-4">
+                  <Users
+                    size={40}
+                    className="mx-auto mb-4"
+                  />
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-indigo-600 text-lg font-bold text-white">
-
-                      {customer.name.charAt(0)}
-
-                    </div>
-
-                    <div>
-
-                      <h3 className="font-semibold text-white">
-
-                        {customer.name}
-
-                      </h3>
-
-                      <p className="text-sm text-slate-500">
-
-                        {customer.email}
-
-                      </p>
-
-                      <p className="text-xs text-slate-600">
-
-                        {customer.phone}
-
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </td>
-
-                {/* Orders */}
-
-                <td className="px-6 py-6 font-medium text-white">
-
-                  {customer.orders}
-
-                </td>
-
-                {/* Spend */}
-
-                <td className="px-6 py-6 font-semibold text-cyan-400">
-
-                  {customer.spend}
-
-                </td>
-
-                {/* Segment */}
-
-                <td className="px-6 py-6">
-
-                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1">
-
-                    {customer.segment === "VIP" && (
-                      <Crown size={15} className="text-amber-400" />
-                    )}
-
-                    {customer.segment === "Premium" && (
-                      <Star size={15} className="text-indigo-400" />
-                    )}
-
-                    {(customer.segment === "Regular" ||
-                      customer.segment === "New") && (
-                      <User size={15} className="text-cyan-400" />
-                    )}
-
-                    <span className="text-sm text-white">
-                      {customer.segment}
-                    </span>
-
-                  </div>
-
-                </td>
-
-                {/* Status */}
-
-                <td className="px-6 py-6">
-
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
-                      customer.status === "Active"
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : customer.status === "Inactive"
-                        ? "bg-red-500/20 text-red-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    }`}
-                  >
-                    {customer.status}
-                  </span>
-
-                </td>
-
-                {/* Actions */}
-
-                <td className="px-6 py-6 text-right">
-
-                  <button className="rounded-xl p-2 transition hover:bg-slate-800">
-
-                    <MoreVertical
-                      size={18}
-                      className="text-slate-400"
-                    />
-
-                  </button>
+                  No customers found.
 
                 </td>
 
               </tr>
 
-            ))}
+            ) : (
+
+              filteredRows.map((row, index) => (
+
+                <tr
+                  key={index}
+                  className="border-t border-slate-800 transition hover:bg-slate-800/40"
+                >
+
+                  <td className="px-6 py-5 font-semibold text-white">
+                    {row.customer}
+                  </td>
+
+                  <td className="text-white">
+                    {row.orders}
+                  </td>
+
+                  <td className="font-semibold text-green-400">
+                    ₹{Number(row.revenue).toLocaleString()}
+                  </td>
+
+                  <td className="font-semibold text-blue-400">
+                    ₹{Number(row.lifetime_value).toLocaleString()}
+                  </td>
+
+                  <td>
+                    {getTierBadge(row.tier)}
+                  </td>
+
+                </tr>
+
+              ))
+
+            )}
 
           </tbody>
 
         </table>
 
       </div>
-    </motion.div>
+
+    </div>
   );
 }

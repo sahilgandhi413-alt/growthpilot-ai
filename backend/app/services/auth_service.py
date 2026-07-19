@@ -1,50 +1,99 @@
 from sqlalchemy.orm import Session
 
-from ..models.user import User
-from ..utils.security import ( # pyright: ignore[reportMissingImports]
-    hash_password,
-    verify_password,
-)
+from app.models.user import User
+from app.schemas.auth import RegisterRequest, LoginRequest
+from app.security.password import hash_password, verify_password
+from app.security.jwt import create_access_token
 
 
-def register_user(db: Session, data):
+class AuthService:
 
-    existing = (
-        db.query(User)
-        .filter(User.email == data.email)
-        .first()
-    )
+    @staticmethod
+    def register(db: Session, request: RegisterRequest):
 
-    if existing:
-        return None
+        # Check if email already exists
+        existing_user = (
+            db.query(User)
+            .filter(User.email == request.email)
+            .first()
+        )
 
-    user = User(
-        name=data.name,
-        email=data.email,
-        password=hash_password(data.password),
-    )
+        if existing_user:
+            raise Exception("Email already registered.")
 
-    db.add(user)
+        # Create user
+        user = User(
+            full_name=request.full_name,
+            company=request.company,
+            email=request.email,
+            password=hash_password(request.password),
+        )
 
-    db.commit()
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-    db.refresh(user)
+        token = create_access_token(
+            {
+                "sub": user.email,
+                "id": user.id,
+            }
+        )
 
-    return user
+        return {
+            "message": "Registration successful",
+            "access_token": token,
+            "user": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "company": user.company,
+                "email": user.email,
+                "role": user.role,
+            },
+        }
 
+    @staticmethod
+    def login(db: Session, request: LoginRequest):
 
-def login_user(db: Session, email, password):
+        user = (
+            db.query(User)
+            .filter(User.email == request.email)
+            .first()
+        )
 
-    user = (
-        db.query(User)
-        .filter(User.email == email)
-        .first()
-    )
+        if not user:
+            raise Exception("Invalid email or password")
 
-    if not user:
-        return None
+        if not verify_password(
+            request.password,
+            user.password,
+        ):
+            raise Exception("Invalid email or password")
 
-    if not verify_password(password, user.password):
-        return None
+        token = create_access_token(
+            {
+                "sub": user.email,
+                "id": user.id,
+            }
+        )
 
-    return user
+        return {
+            "message": "Login successful",
+            "access_token": token,
+            "user": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "company": user.company,
+                "email": user.email,
+                "role": user.role,
+            },
+        }
+
+    @staticmethod
+    def current_user(db: Session, email: str):
+
+        return (
+            db.query(User)
+            .filter(User.email == email)
+            .first()
+        )

@@ -1,29 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database.dependencies import get_db
+from app.services.copilot_service import CopilotService
+
+router = APIRouter(tags=["AI Copilot"])
 
 
-router = APIRouter(
-    prefix="/copilot",
-    tags=["AI Copilot"]
-)
+class ChatRequest(BaseModel):
+    message: str
 
 
-
-@router.post("/")
-def chat(message:str):
-
-    response = f"""
-    AI Analysis:
-
-    Your query:
-    {message}
-
-
-    Recommendation:
-    Optimize inventory based on current sales trends.
-    """
-
-    return {
-
-        "reply":response
-
-    }
+@router.post("/copilot/chat")
+def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+):
+    return CopilotService.chat(request.message, db)

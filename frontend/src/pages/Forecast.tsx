@@ -1,103 +1,142 @@
-import ForecastHeader from "../components/forecast/ForecastHeader";
-import ForecastToolbar from "../components/forecast/ForecastToolbar";
-import ForecastExecutiveSummary from "../components/forecast/ForecastExecutiveSummary";
+import { useEffect, useState } from "react";
+
+import ForecastCards from "../components/forecast/ForecastCards";
+import ForecastChart from "../components/forecast/ForecastChart";
+import PredictionTable from "../components/forecast/PredictionTable";
 import ForecastSummary from "../components/forecast/ForecastSummary";
-import ForecastTabs from "../components/forecast/ForecastTabs";
-import ForecastInsightsDrawer from "../components/forecast/ForecastInsightsDrawer";
-import ForecastGauge from "../components/forecast/ForecastGauge";
-import ForecastScenario from "../components/forecast/ForecastScenario";
-import ForecastRecommendation from "../components/forecast/ForecastRecommendation";
-import ForecastAccuracy from "../components/forecast/ForecastAccuracy";
-import ForecastRisk from "../components/forecast/ForecastRisk";
-import ForecastFeatureImportance from "../components/forecast/ForecastFeatureImportance";
-import ForecastComparisonTable from "../components/forecast/ForecastComparisonTable";
-import ForecastCategoryPerformance from "../components/forecast/ForecastCategoryPerformance";
 import ForecastFloatingAI from "../components/forecast/ForecastFloatingAI";
+import {
+  getForecastSummary,
+  getForecastChart,
+  getForecastPredictions,
+  getForecastAISummary,
+} from "../services/forecastService";
 
 export default function Forecast() {
+  const [summary, setSummary] = useState<any>(null);
+  const [chart, setChart] = useState<any[]>([]);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [aiSummary, setAiSummary] = useState<any>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  async function loadForecast(showRefresh = false) {
+    try {
+      if (showRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      setError("");
+
+      const [
+        summaryData,
+        chartData,
+        predictionData,
+        aiData,
+      ] = await Promise.all([
+        getForecastSummary(),
+        getForecastChart(),
+        getForecastPredictions(),
+        getForecastAISummary(),
+      ]);
+
+      setSummary(summaryData);
+      setChart(chartData);
+      setPredictions(predictionData);
+      setAiSummary(aiData);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load forecast data.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    loadForecast();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center">
+          <div className="h-12 w-12 mx-auto rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          <p className="mt-5 text-slate-400 text-lg">
+            Loading Forecast...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-3xl bg-red-500/10 border border-red-500 p-10">
+        <h2 className="text-2xl font-bold text-red-400">
+          Something went wrong
+        </h2>
+
+        <p className="mt-3 text-slate-300">{error}</p>
+
+        <button
+          onClick={() => loadForecast()}
+          className="mt-6 rounded-xl bg-red-500 px-6 py-3 text-white"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="space-y-8">
 
-      {/* Background Glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {/* Header */}
 
-        <div className="absolute top-0 left-0 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[150px]" />
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
 
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-violet-600/10 blur-[150px]" />
+        <div>
+          <h1 className="text-4xl font-bold text-white">
+            Sales Forecast
+          </h1>
+
+          <p className="mt-2 text-slate-400">
+            AI-powered revenue and demand prediction dashboard.
+          </p>
+        </div>
+
+        <button
+          onClick={() => loadForecast(true)}
+          className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 transition"
+        >
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
 
       </div>
 
-      <main className="relative mx-auto max-w-[1600px] space-y-8 px-6 py-8">
+      {/* KPI Cards */}
 
-        {/* Header */}
-        <ForecastHeader />
+      {summary && <ForecastCards summary={summary} />}
 
-        {/* Toolbar */}
-        <ForecastToolbar />
+      {/* Forecast Chart */}
 
-        {/* Executive Summary */}
-        <ForecastExecutiveSummary />
+      <ForecastChart data={chart} />
 
-        {/* KPI Cards */}
-        <ForecastSummary />
+      {/* Prediction Table */}
 
-        {/* ================= MAIN ANALYTICS ================= */}
+      <PredictionTable rows={predictions} />
 
-        <section className="grid xl:grid-cols-3 gap-8">
+      {/* AI Summary */}
 
-          {/* Left */}
-
-          <div className="xl:col-span-2 space-y-8">
-
-            <ForecastTabs />
-
-            <ForecastInsightsDrawer />
-
-            <ForecastComparisonTable />
-
-          </div>
-
-          {/* Right */}
-
-          <div className="space-y-8">
-
-            <ForecastGauge value={96} />
-
-            <ForecastScenario />
-
-          </div>
-
-        </section>
-
-        {/* ================= FULL WIDTH AI RECOMMENDATION ================= */}
-
-        <ForecastRecommendation />
-
-        {/* ================= FULL WIDTH MODEL ACCURACY ================= */}
-
-        <ForecastAccuracy />
-
-        {/* ================= BOTTOM ANALYTICS ================= */}
-
-        <section className="grid lg:grid-cols-2 gap-8">
-          
-
-          <ForecastRisk />
-
-          <ForecastFeatureImportance />
-          <ForecastCategoryPerformance />
-
-        </section>
-
-        
-
-        
-
-      </main>
-
-      {/* Floating AI */}
-
-      <ForecastFloatingAI />
+      {aiSummary && (
+        <ForecastSummary summary={aiSummary} />
+      )}
+      <ForecastFloatingAI/>
 
     </div>
   );

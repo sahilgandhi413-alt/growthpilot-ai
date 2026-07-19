@@ -1,14 +1,25 @@
-﻿import { useState } from "react";
+﻿import { useRef, useState } from "react";
 import type { AxiosError } from "axios";
 import api from "../../services/api";
+
+interface ErrorResponse {
+  detail?: string;
+}
 
 export default function FileUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const upload = async () => {
     if (!file) {
       alert("Please select a CSV file.");
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      alert("Only CSV files are allowed.");
       return;
     }
 
@@ -25,15 +36,25 @@ export default function FileUpload() {
       });
 
       alert(response.data.message);
-      console.log(response.data);
-    } catch (error) {
-      const requestError = error as AxiosError;
-      console.error(requestError);
 
-      if (requestError.response) {
-        alert(`Error ${requestError.response.status}: ${JSON.stringify(requestError.response.data)}`);
+      setFile(null);
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
+      // Later we can refresh dashboard automatically here
+      // window.location.reload();
+
+    } catch (error) {
+      const err = error as AxiosError<ErrorResponse>;
+
+      console.error(err);
+
+      if (err.response?.data?.detail) {
+        alert(err.response.data.detail);
       } else {
-        alert(requestError.message);
+        alert("Upload failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -41,8 +62,14 @@ export default function FileUpload() {
   };
 
   return (
-    <div className="bg-slate-900 rounded-xl p-6">
+    <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
+
+      <h3 className="mb-4 text-lg font-semibold text-white">
+        Upload Sales CSV
+      </h3>
+
       <input
+        ref={inputRef}
         type="file"
         accept=".csv"
         onChange={(e) => {
@@ -50,15 +77,23 @@ export default function FileUpload() {
             setFile(e.target.files[0]);
           }
         }}
+        className="block w-full rounded-lg border border-slate-700 bg-slate-950 p-2 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-600 file:px-4 file:py-2 file:text-white hover:file:bg-cyan-700"
       />
+
+      {file && (
+        <p className="mt-3 text-sm text-cyan-400">
+          Selected: <span className="font-medium">{file.name}</span>
+        </p>
+      )}
 
       <button
         onClick={upload}
         disabled={loading}
-        className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:opacity-50"
+        className="mt-5 w-full rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-5 py-3 font-semibold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Uploading..." : "Upload CSV"}
       </button>
+
     </div>
   );
 }
