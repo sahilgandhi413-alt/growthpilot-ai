@@ -1,9 +1,0 @@
-product,category,revenue,quantity,month
-Laptop,Electronics,45000,5,January
-Mouse,Electronics,3500,20,January
-Keyboard,Electronics,5200,18,January
-Shoes,Fashion,8200,15,January
-Bag,Fashion,6000,12,January
-Phone,Electronics,65000,8,February
-Tablet,Electronics,28000,6,February
-Watch,Accessories,12000,10,February
