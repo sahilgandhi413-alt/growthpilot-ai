@@ -99,8 +99,6 @@ app.include_router(
     tags=["Export"],
 )
 
-
-
 app.include_router(
     settings_router,
     prefix="/api/v1",
@@ -123,3 +121,23 @@ def health():
     return {
         "status": "healthy"
     }
+
+# -----------------------------
+# Automatic Reload Launcher
+# -----------------------------
+if __name__ == "__main__":
+    import uvicorn
+    import pathlib
+
+    # Programmatically extract module import targets
+    file_stem = pathlib.Path(__file__).stem
+    folder_name = pathlib.Path(__file__).parent.name
+
+    print(f"🚀 Launching GrowthPilot AI Backend with auto-reload...")
+    
+    uvicorn.run(
+        f"{folder_name}.{file_stem}:app", 
+        host="127.0.0.1", 
+        port=8000, 
+        reload=True
+    )
